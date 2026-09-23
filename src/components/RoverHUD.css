@@ -1,0 +1,139 @@
+.rover-hud {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.hud-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: 6px;
+}
+
+.hud-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-icon-radio {
+  color: var(--color-robot);
+  animation: pulse-radio 2s infinite ease-in-out;
+}
+
+@keyframes pulse-radio {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.9); }
+}
+
+.hud-rover-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.hud-mcu-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.hud-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hud-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: var(--color-bg-cell);
+  border: 1px solid var(--color-bg-cell-border);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+
+.hud-card-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-card-value {
+  font-family: var(--font-family-code);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-card-alert {
+  background-color: var(--color-danger-bg);
+  border-color: #fecdd3;
+}
+
+.hud-card-alert .hud-card-value {
+  color: #dc2626;
+}
+
+.hud-card-success {
+  background-color: var(--color-success-bg);
+  border-color: #bbf7d0;
+}
+
+.hud-card-success .hud-card-value {
+  color: #16a34a;
+}
+
+.icon-alert {
+  color: #dc2626;
+}
+
+.icon-ok {
+  color: #16a34a;
+}
+
+@media (max-width: 600px) {
+  .hud-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .rover-hud {
+    padding: 8px 10px;
+  }
+}

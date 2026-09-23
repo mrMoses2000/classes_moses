@@ -24,6 +24,7 @@ import { RoadmapModal } from './components/RoadmapModal';
 import { TeacherDrawer } from './components/TeacherDrawer';
 import { Header } from './components/Header';
 import { CStudio } from './components/CStudio';
+import { RoverHUD } from './components/RoverHUD';
 import { Target, HelpCircle, LayoutGrid, Code2 as CodeIcon } from 'lucide-react';
 import './App.css';
 
@@ -590,6 +591,14 @@ export const App: React.FC = () => {
                 <span>{currentMission.hint}</span>
               </div>
             </div>
+
+            {/* Rover Real-Time Telemetry HUD */}
+            <RoverHUD
+              robot={robotState}
+              isHitWall={terminalStatus === 'HIT_WALL'}
+              isGoalReached={terminalStatus === 'SUCCESS'}
+              lessonId={currentLessonId}
+            />
 
             <div className="grid-wrapper">
               <Grid
