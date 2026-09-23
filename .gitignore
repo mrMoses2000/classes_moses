@@ -2,3 +2,6 @@ node_modules/
 dist/
 test-screenshots/
 .DS_Store
+tunnel.log
+tunnel.pid
+preview.log
