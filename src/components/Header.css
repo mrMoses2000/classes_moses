@@ -47,6 +47,62 @@
   font-weight: 500;
 }
 
+.lesson-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--color-bg-subtle);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.lesson-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.lesson-pill:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-hover);
+}
+
+.lesson-pill-active {
+  background-color: #ffffff;
+  color: var(--color-primary-action);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+}
+
+.pill-badge {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.lesson-pill-active .pill-badge {
+  background-color: var(--color-primary-action);
+  color: #ffffff;
+  border-color: var(--color-primary-action);
+}
+
+.pill-title {
+  white-space: nowrap;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -138,12 +194,50 @@
   color: var(--color-primary-action);
 }
 
+@media (max-width: 768px) {
+  .header-brand-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 600px) {
   .header-container {
-    padding: 10px 12px;
+    padding: 8px 10px;
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  .header-brand-row {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .brand-group {
+    width: 100%;
   }
   .brand-title {
     font-size: 1.1rem;
+  }
+  .lesson-switcher {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+  }
+  .lesson-pill {
+    flex: 1;
+    justify-content: center;
+    padding: 4px 6px;
+    font-size: 0.78rem;
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .header-tool-btn {
+    padding: 5px 8px;
+    font-size: 0.78rem;
   }
   .tab-btn {
     padding: 6px 10px;

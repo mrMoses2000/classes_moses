@@ -54,8 +54,16 @@ export interface TeacherNote {
   timing: string;
 }
 
+export interface LessonInfo {
+  id: number;
+  title: string;
+  subtitle: string;
+  themeBadge: string;
+}
+
 export interface Mission {
   id: number;
+  lessonId: number;
   title: string;
   subtitle: string;
   objective: string;

@@ -7,7 +7,7 @@ import {
   SimulationResult,
   TerminalStatus,
 } from './types';
-import { MISSIONS } from './data/missions';
+import { MISSIONS, LESSONS } from './data/missions';
 import { runSimulation, executeSingleCommand } from './simulator/engine';
 import {
   loadStoredProgress,
@@ -29,17 +29,21 @@ import './App.css';
 export const App: React.FC = () => {
   // Stored state initialization
   const [initialLoaded, setInitialLoaded] = useState(false);
+  const [currentLessonId, setCurrentLessonId] = useState<number>(1);
   const [currentMissionId, setCurrentMissionId] = useState<number>(1);
   const [completedMissionIds, setCompletedMissionIds] = useState<number[]>([]);
-  const [programs, setPrograms] = useState<Record<number, CommandType[]>>({
-    1: [],
-    2: [],
-    3: ['STEP', 'TURN_LEFT', 'STEP'],
+  const [programs, setPrograms] = useState<Record<number, CommandType[]>>(() => {
+    const initial: Record<number, CommandType[]> = {};
+    for (const m of MISSIONS) {
+      initial[m.id] = [...m.initialCommands];
+    }
+    return initial;
   });
 
-  // Current mission
+  // Current mission and lesson
   const currentMission: Mission =
     MISSIONS.find((m) => m.id === currentMissionId) || MISSIONS[0];
+  const lessonMissions = MISSIONS.filter((m) => m.lessonId === currentLessonId);
   const currentProgram = programs[currentMissionId] || [];
 
   // Simulator playback state
@@ -72,6 +76,8 @@ export const App: React.FC = () => {
   // Load progress once on mount
   useEffect(() => {
     const loaded = loadStoredProgress();
+    const validLessonId = loaded.currentLessonId || 1;
+    setCurrentLessonId(validLessonId);
     setCurrentMissionId(loaded.currentMissionId);
     setCompletedMissionIds(loaded.completedMissionIds);
     setPrograms(loaded.programs);
@@ -87,11 +93,12 @@ export const App: React.FC = () => {
     if (!initialLoaded) return;
     saveStoredProgress({
       version: 1,
+      currentLessonId,
       currentMissionId,
       completedMissionIds,
       programs,
     });
-  }, [initialLoaded, currentMissionId, completedMissionIds, programs]);
+  }, [initialLoaded, currentLessonId, currentMissionId, completedMissionIds, programs]);
 
   // Clean timer on unmount
   useEffect(() => {
@@ -127,7 +134,34 @@ export const App: React.FC = () => {
         timerRef.current = null;
       }
       const target = MISSIONS.find((m) => m.id === missionId) || MISSIONS[0];
+      setCurrentLessonId(target.lessonId);
       setCurrentMissionId(missionId);
+      setIsRunning(false);
+      setIsPaused(false);
+      setIsStepMode(false);
+      setStepPointer(0);
+      setActiveStepIndex(null);
+      setErrorStepIndex(null);
+      setHighlightObstacle(null);
+      setRobotState(target.startState);
+      setVisitedCoords([{ x: target.startState.x, y: target.startState.y }]);
+      setTerminalStatus('READY');
+      setTerminalMessage('');
+    },
+    []
+  );
+
+  // Change lesson
+  const handleSelectLesson = useCallback(
+    (lessonId: number) => {
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      setCurrentLessonId(lessonId);
+      const targetMissions = MISSIONS.filter((m) => m.lessonId === lessonId);
+      const target = targetMissions[0] || MISSIONS[0];
+      setCurrentMissionId(target.id);
       setIsRunning(false);
       setIsPaused(false);
       setIsStepMode(false);
@@ -160,8 +194,8 @@ export const App: React.FC = () => {
     (index: number) => {
       resetAttempt();
       setPrograms((prev) => {
-        const next = [...(prev[currentMissionId] || [])];
-        next.splice(index, 1);
+        const cur = prev[currentMissionId] || [];
+        const next = [...cur.slice(0, index), ...cur.slice(index + 1)];
         return { ...prev, [currentMissionId]: next };
       });
     },
@@ -173,11 +207,11 @@ export const App: React.FC = () => {
       if (index === 0) return;
       resetAttempt();
       setPrograms((prev) => {
-        const next = [...(prev[currentMissionId] || [])];
-        const temp = next[index];
-        next[index] = next[index - 1];
-        next[index - 1] = temp;
-        return { ...prev, [currentMissionId]: next };
+        const cur = [...(prev[currentMissionId] || [])];
+        const temp = cur[index - 1];
+        cur[index - 1] = cur[index];
+        cur[index] = temp;
+        return { ...prev, [currentMissionId]: cur };
       });
     },
     [currentMissionId, resetAttempt]
@@ -185,14 +219,14 @@ export const App: React.FC = () => {
 
   const handleMoveDown = useCallback(
     (index: number) => {
-      resetAttempt();
       setPrograms((prev) => {
-        const next = [...(prev[currentMissionId] || [])];
-        if (index >= next.length - 1) return prev;
-        const temp = next[index];
-        next[index] = next[index + 1];
-        next[index + 1] = temp;
-        return { ...prev, [currentMissionId]: next };
+        const cur = [...(prev[currentMissionId] || [])];
+        if (index >= cur.length - 1) return prev;
+        resetAttempt();
+        const temp = cur[index + 1];
+        cur[index + 1] = cur[index];
+        cur[index] = temp;
+        return { ...prev, [currentMissionId]: cur };
       });
     },
     [currentMissionId, resetAttempt]
@@ -206,81 +240,86 @@ export const App: React.FC = () => {
     }));
   }, [currentMissionId, resetAttempt]);
 
-  // Full run simulation
+  // Full Automated Simulation Run
   const handleRun = useCallback(() => {
-    if (currentProgram.length === 0) return;
+    if (isRunning) return;
 
-    if (timerRef.current) {
-      window.clearTimeout(timerRef.current);
-      timerRef.current = null;
+    if (currentProgram.length === 0) {
+      setTerminalStatus('INCOMPLETE');
+      setTerminalMessage('В программе нет команд. Добавь команды из панели слева!');
+      return;
     }
 
-    // Always start from mission start position
-    const start = currentMission.startState;
-    setRobotState(start);
-    setVisitedCoords([{ x: start.x, y: start.y }]);
-    setActiveStepIndex(null);
-    setErrorStepIndex(null);
-    setHighlightObstacle(null);
+    // Reset board before animating
     setIsRunning(true);
     setIsPaused(false);
     setIsStepMode(false);
+    setStepPointer(0);
+    setErrorStepIndex(null);
+    setHighlightObstacle(null);
     setTerminalStatus('READY');
     setTerminalMessage('');
 
-    const simResult: SimulationResult = runSimulation(start, currentProgram, {
-      gridWidth: currentMission.gridWidth,
-      gridHeight: currentMission.gridHeight,
-      goal: currentMission.goal,
-      obstacles: currentMission.obstacles,
-    });
+    setRobotState(currentMission.startState);
+    setVisitedCoords([{ x: currentMission.startState.x, y: currentMission.startState.y }]);
 
-    let currentStepIdx = 0;
+    // Calculate full deterministic trace upfront
+    const simResult: SimulationResult = runSimulation(
+      currentMission.startState,
+      currentProgram,
+      {
+        gridWidth: currentMission.gridWidth,
+        gridHeight: currentMission.gridHeight,
+        goal: currentMission.goal,
+        obstacles: currentMission.obstacles,
+      }
+    );
 
+    let currentStep = 0;
     const playNextStep = () => {
-      if (currentStepIdx < simResult.steps.length) {
-        const step = simResult.steps[currentStepIdx];
-        setActiveStepIndex(step.stepIndex);
-        setRobotState(step.toState);
-        setVisitedCoords((prev) => [...prev, { x: step.toState.x, y: step.toState.y }]);
-
-        if (step.status === 'HIT_WALL') {
-          // Highlight the wall obstacle
-          const offset = currentMission.obstacles.find(
-            (obs) =>
-              obs.x === step.fromState.x + (step.command === 'STEP' ? (step.fromState.direction === 'EAST' ? 1 : step.fromState.direction === 'WEST' ? -1 : 0) : 0) &&
-              obs.y === step.fromState.y + (step.command === 'STEP' ? (step.fromState.direction === 'SOUTH' ? 1 : step.fromState.direction === 'NORTH' ? -1 : 0) : 0)
-          );
-          if (offset) setHighlightObstacle(offset);
-          setErrorStepIndex(step.stepIndex);
-        } else if (step.status === 'OUT_OF_BOUNDS') {
-          setErrorStepIndex(step.stepIndex);
-        }
-
-        currentStepIdx++;
-        timerRef.current = window.setTimeout(playNextStep, 450);
-      } else {
-        // Animation finished
+      if (currentStep >= simResult.steps.length) {
         setIsRunning(false);
+        setActiveStepIndex(null);
         setTerminalStatus(simResult.terminalStatus);
         setTerminalMessage(simResult.terminalMessage);
 
         if (simResult.success) {
-          setCompletedMissionIds((prev) => {
-            const next = prev.includes(currentMissionId) ? prev : [...prev, currentMissionId];
-            if (next.includes(1) && next.includes(2) && next.includes(3)) {
-              setShowReflection(true);
+          setCompletedMissionIds((prev) =>
+            prev.includes(currentMissionId) ? prev : [...prev, currentMissionId]
+          );
+        } else if (simResult.failedAtCommandIndex !== null) {
+          setErrorStepIndex(simResult.failedAtCommandIndex);
+          if (simResult.terminalStatus === 'HIT_WALL') {
+            const hitStep = simResult.steps[simResult.failedAtCommandIndex];
+            if (hitStep) {
+              const forwardOffset =
+                hitStep.fromState.direction === 'EAST'
+                  ? { x: hitStep.fromState.x + 1, y: hitStep.fromState.y }
+                  : hitStep.fromState.direction === 'WEST'
+                  ? { x: hitStep.fromState.x - 1, y: hitStep.fromState.y }
+                  : hitStep.fromState.direction === 'NORTH'
+                  ? { x: hitStep.fromState.x, y: hitStep.fromState.y - 1 }
+                  : { x: hitStep.fromState.x, y: hitStep.fromState.y + 1 };
+              setHighlightObstacle(forwardOffset);
             }
-            return next;
-          });
+          }
         }
+        return;
       }
+
+      const step = simResult.steps[currentStep];
+      setActiveStepIndex(step.stepIndex);
+      setRobotState(step.toState);
+      setVisitedCoords((prev) => [...prev, { x: step.toState.x, y: step.toState.y }]);
+
+      currentStep++;
+      timerRef.current = window.setTimeout(playNextStep, 500);
     };
 
-    timerRef.current = window.setTimeout(playNextStep, 150);
-  }, [currentMission, currentMissionId, currentProgram]);
+    timerRef.current = window.setTimeout(playNextStep, 200);
+  }, [isRunning, currentProgram, currentMission, currentMissionId]);
 
-  // Step-by-step execution
+  // Step-by-Step Simulation Execution
   const handleStep = useCallback(() => {
     if (currentProgram.length === 0) return;
     if (isRunning && !isStepMode) return; // Do not interrupt automatic animation!
@@ -331,21 +370,33 @@ export const App: React.FC = () => {
       setIsStepMode(false);
       setTerminalStatus('SUCCESS');
       setTerminalMessage(`Маяк достигнут на шаге ${stepNumber}! Отличная работа.`);
-      setCompletedMissionIds((prev) => {
-        const next = prev.includes(currentMissionId) ? prev : [...prev, currentMissionId];
-        if (next.includes(1) && next.includes(2) && next.includes(3)) {
-          setShowReflection(true);
-        }
-        return next;
-      });
+      setCompletedMissionIds((prev) =>
+        prev.includes(currentMissionId) ? prev : [...prev, currentMissionId]
+      );
     } else if (status === 'HIT_WALL') {
       setIsRunning(false);
       setIsStepMode(false);
       setErrorStepIndex(stepPointer);
       const offset = currentMission.obstacles.find(
         (obs) =>
-          obs.x === robotState.x + (command === 'STEP' ? (robotState.direction === 'EAST' ? 1 : robotState.direction === 'WEST' ? -1 : 0) : 0) &&
-          obs.y === robotState.y + (command === 'STEP' ? (robotState.direction === 'SOUTH' ? 1 : robotState.direction === 'NORTH' ? -1 : 0) : 0)
+          obs.x ===
+            robotState.x +
+            (command === 'STEP'
+              ? robotState.direction === 'EAST'
+                ? 1
+                : robotState.direction === 'WEST'
+                ? -1
+                : 0
+              : 0) &&
+          obs.y ===
+            robotState.y +
+            (command === 'STEP'
+              ? robotState.direction === 'SOUTH'
+                ? 1
+                : robotState.direction === 'NORTH'
+                ? -1
+                : 0
+              : 0)
       );
       if (offset) setHighlightObstacle(offset);
       setTerminalStatus('HIT_WALL');
@@ -369,13 +420,9 @@ export const App: React.FC = () => {
         if (isAtGoal) {
           setTerminalStatus('SUCCESS');
           setTerminalMessage(`Маяк достигнут на шаге ${stepNumber}! Отличная работа.`);
-          setCompletedMissionIds((prev) => {
-            const next = prev.includes(currentMissionId) ? prev : [...prev, currentMissionId];
-            if (next.includes(1) && next.includes(2) && next.includes(3)) {
-              setShowReflection(true);
-            }
-            return next;
-          });
+          setCompletedMissionIds((prev) =>
+            prev.includes(currentMissionId) ? prev : [...prev, currentMissionId]
+          );
         } else {
           setTerminalStatus('INCOMPLETE');
           setTerminalMessage(
@@ -397,18 +444,12 @@ export const App: React.FC = () => {
     isRunning,
   ]);
 
-  // Keyboard shortcut support
+  // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing inside input, textarea, or if modal is open
-      if (
-        isCodeOpen ||
-        isRoadmapOpen ||
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
+      // Do not trigger if any modal is active or active element is an input
+      if (isCodeOpen || isRoadmapOpen) return;
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
 
       if (e.key === '1') {
         e.preventDefault();
@@ -419,12 +460,16 @@ export const App: React.FC = () => {
       } else if (e.key === '3') {
         e.preventDefault();
         handleAddCommand('TURN_RIGHT');
-      } else if (e.key === ' ' && !isRunning) {
+      } else if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
-        handleRun();
-      } else if (e.key === 'Backspace' && !isRunning && currentProgram.length > 0) {
+        if (!isRunning) {
+          handleRun();
+        }
+      } else if (e.key === 'Backspace') {
         e.preventDefault();
-        handleRemoveCommand(currentProgram.length - 1);
+        if (currentProgram.length > 0 && !isRunning) {
+          handleRemoveCommand(currentProgram.length - 1);
+        }
       }
     };
 
@@ -440,11 +485,8 @@ export const App: React.FC = () => {
     handleRemoveCommand,
   ]);
 
-  // Check whether all three missions are truly completed
-  const areAllCompleted =
-    completedMissionIds.includes(1) &&
-    completedMissionIds.includes(2) &&
-    completedMissionIds.includes(3);
+  // Check whether all missions in the active lesson are completed
+  const areAllCompleted = lessonMissions.every((m) => completedMissionIds.includes(m.id));
 
   // Transition to next mission
   const handleNextMission = () => {
@@ -454,11 +496,11 @@ export const App: React.FC = () => {
       return;
     }
 
-    if (currentMissionId < 3) {
-      handleSelectMission(currentMissionId + 1);
+    const currentIdx = lessonMissions.findIndex((m) => m.id === currentMissionId);
+    if (currentIdx !== -1 && currentIdx < lessonMissions.length - 1) {
+      handleSelectMission(lessonMissions[currentIdx + 1].id);
     } else {
-      // User is on Mission 3, but mission 1 or 2 is incomplete:
-      const firstIncomplete = MISSIONS.find((m) => !completedMissionIds.includes(m.id));
+      const firstIncomplete = lessonMissions.find((m) => !completedMissionIds.includes(m.id));
       if (firstIncomplete) {
         handleSelectMission(firstIncomplete.id);
       } else {
@@ -472,10 +514,12 @@ export const App: React.FC = () => {
     if (areAllCompleted) {
       return 'Завершить урок и рефлексия →';
     }
-    if (currentMissionId === 3) {
-      const remaining = MISSIONS.find((m) => !completedMissionIds.includes(m.id));
+    const currentIdx = lessonMissions.findIndex((m) => m.id === currentMissionId);
+    if (currentIdx === lessonMissions.length - 1) {
+      const remaining = lessonMissions.find((m) => !completedMissionIds.includes(m.id));
       if (remaining) {
-        return `Перейти к заданию ${remaining.id} →`;
+        const remainingIdx = lessonMissions.findIndex((m) => m.id === remaining.id) + 1;
+        return `Перейти к заданию ${remainingIdx} →`;
       }
     }
     return 'Следующее задание →';
@@ -485,19 +529,25 @@ export const App: React.FC = () => {
   const handleResetAllProgress = () => {
     clearStoredProgress();
     setCompletedMissionIds([]);
-    setPrograms({
-      1: [],
-      2: [],
-      3: ['STEP', 'TURN_LEFT', 'STEP'],
-    });
-    handleSelectMission(1);
+    const defaultPrograms: Record<number, CommandType[]> = {};
+    for (const m of MISSIONS) {
+      defaultPrograms[m.id] = [...m.initialCommands];
+    }
+    setPrograms(defaultPrograms);
+    handleSelectMission(lessonMissions[0]?.id || 1);
   };
+
+  const currentMissionIndexInLesson =
+    lessonMissions.findIndex((m) => m.id === currentMission.id) + 1;
 
   return (
     <div className="app-layout">
-      {/* Header */}
+      {/* Header with Lesson Switcher */}
       <Header
-        missions={MISSIONS}
+        lessons={LESSONS}
+        currentLessonId={currentLessonId}
+        onSelectLesson={handleSelectLesson}
+        missions={lessonMissions}
         currentMissionId={currentMissionId}
         completedMissionIds={completedMissionIds}
         onSelectMission={handleSelectMission}
@@ -515,7 +565,9 @@ export const App: React.FC = () => {
           <section className="left-panel" aria-label="Игровое поле робота">
             <div className="mission-card">
               <div className="mission-card-header">
-                <div className="mission-badge">Задание {currentMission.id} из 3</div>
+                <div className="mission-badge">
+                  Задание {currentMissionIndexInLesson} из {lessonMissions.length}
+                </div>
                 <h2 className="mission-title">{currentMission.subtitle}</h2>
               </div>
               <p className="mission-objective">
@@ -545,7 +597,7 @@ export const App: React.FC = () => {
               status={terminalStatus}
               message={terminalMessage}
               onNextMission={handleNextMission}
-              hasNextMission={currentMissionId <= 3}
+              hasNextMission={true}
               nextButtonLabel={getNextButtonLabel()}
             />
           </section>
@@ -587,6 +639,7 @@ export const App: React.FC = () => {
 
       {/* Floating Teacher Toggle & Drawer */}
       <TeacherDrawer
+        currentLessonId={currentLessonId}
         currentMissionId={currentMissionId}
         missionTitle={currentMission.title}
         teacherNote={currentMission.teacherNote}
@@ -601,6 +654,7 @@ export const App: React.FC = () => {
         onClose={() => setIsCodeOpen(false)}
         commands={currentProgram}
         missionTitle={currentMission.title}
+        lessonId={currentLessonId}
       />
 
       {/* Roadmap & Reflection Modal */}

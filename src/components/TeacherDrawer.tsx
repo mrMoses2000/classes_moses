@@ -14,6 +14,7 @@ import {
 import './TeacherDrawer.css';
 
 interface TeacherDrawerProps {
+  currentLessonId: number;
   currentMissionId: number;
   missionTitle: string;
   teacherNote: TeacherNote;
@@ -22,50 +23,95 @@ interface TeacherDrawerProps {
   onResetAllProgress: () => void;
 }
 
-const LESSON_SCHEDULE = [
-  {
-    time: '0–5 мин',
-    childAction: 'Scratch-опыт, три команды учителю до карандаша',
-    teacherPrompt: '«Я робот: выполню буквально то, что ты скажешь»',
-  },
-  {
-    time: '5–10 мин',
-    childAction: 'Предсказывает, куда придёт робот (Задание 1)',
-    teacherPrompt: '«Сначала покажи пальцем результат, потом нажми Запустить»',
-  },
-  {
-    time: '10–20 мин',
-    childAction: 'Сам составляет маршрут на пустом поле, меняет порядок',
-    teacherPrompt: '«Какая команда изменила результат?»',
-  },
-  {
-    time: '20–32 мин',
-    childAction: 'Обходит преграду (Задание 2); рисует путь, собирает команды',
-    teacherPrompt: '«Сколько раз робот повернёт и где?»',
-  },
-  {
-    time: '32–42 мин',
-    childAction: 'Исправляет ошибку в готовом маршруте (Задание 3)',
-    teacherPrompt: '«Что программа делает сейчас? Где ожидание разошлось с результатом?»',
-  },
-  {
-    time: '42–50 мин',
-    childAction: 'Создаёт свой маршрут для преподавателя; преподаватель проходит',
-    teacherPrompt: '«Как проверить, что твоё задание решаемо?»',
-  },
-  {
-    time: '50–57 мин',
-    childAction: 'Открывает «Показать код» и сопоставляет команды с текстом',
-    teacherPrompt: '«Команды те же; позже мы научимся писать их сами»',
-  },
-  {
-    time: '57–60 мин',
-    childAction: 'Рефлексия: понятая идея и план на будущее',
-    teacherPrompt: '«Что ты сделаешь первым, если робот поедет не туда?»',
-  },
-];
+const LESSON_SCHEDULES: Record<number, { time: string; childAction: string; teacherPrompt: string }[]> = {
+  1: [
+    {
+      time: '0–5 мин',
+      childAction: 'Scratch-опыт, три команды учителю до карандаша',
+      teacherPrompt: '«Я робот: выполню буквально то, что ты скажешь»',
+    },
+    {
+      time: '5–10 мин',
+      childAction: 'Предсказывает, куда придёт робот (Задание 1)',
+      teacherPrompt: '«Сначала покажи пальцем результат, потом нажми Запустить»',
+    },
+    {
+      time: '10–20 мин',
+      childAction: 'Сам составляет маршрут на пустом поле, меняет порядок',
+      teacherPrompt: '«Какая команда изменила результат?»',
+    },
+    {
+      time: '20–32 мин',
+      childAction: 'Обходит преграду (Задание 2); рисует путь, собирает команды',
+      teacherPrompt: '«Сколько раз робот повернёт и где?»',
+    },
+    {
+      time: '32–42 мин',
+      childAction: 'Исправляет ошибку в готовом маршруте (Задание 3)',
+      teacherPrompt: '«Что программа делает сейчас? Где ожидание разошлось с результатом?»',
+    },
+    {
+      time: '42–50 мин',
+      childAction: 'Создаёт свой маршрут для преподавателя; преподаватель проходит',
+      teacherPrompt: '«Как проверить, что твоё задание решаемо?»',
+    },
+    {
+      time: '50–57 мин',
+      childAction: 'Открывает «Показать код» и сопоставляет команды с текстом',
+      teacherPrompt: '«Команды те же; позже мы научимся писать их сами»',
+    },
+    {
+      time: '57–60 мин',
+      childAction: 'Рефлексия: понятая идея и план на будущее',
+      teacherPrompt: '«Что ты сделаешь первым, если робот поедет не туда?»',
+    },
+  ],
+  2: [
+    {
+      time: '0–5 мин',
+      childAction: 'Разминка «Робот-танцор»: повторяет связку хлопок+присед',
+      teacherPrompt: '«Я назвал одно правило и число повторов. В коде это называется цикл»',
+    },
+    {
+      time: '5–12 мин',
+      childAction: 'Столкновение с рутиной: набирает 12 команд вручную и устаёт',
+      teacherPrompt: '«Удобно ли писать 100 раз одно и то же? Какой кусочек повторяется?»',
+    },
+    {
+      time: '12–22 мин',
+      childAction: 'Задание 1: находит шаблон ступеньки [Шаг, Влево, Шаг, Вправо] × 3',
+      teacherPrompt: '«Покажи пальцем, где кончается первая ступенька. Куда смотрит робот?»',
+    },
+    {
+      time: '22–33 мин',
+      childAction: 'Задание 2: обобщает обход камней в одинаковые волны',
+      teacherPrompt: '«Ты уже научил робота обойти первый камень. Сделай то же для второго!»',
+    },
+    {
+      time: '33–43 мин',
+      childAction: 'Задание 3: исправляет недолёт счётчика на 1 шаг',
+      teacherPrompt: '«Робот выполнил все повторы, но не дошёл. Сам кирпичик сломался или счётчик мал?»',
+    },
+    {
+      time: '43–48 мин',
+      childAction: 'Смотрит for в коде и мигающий светодиод Arduino loop()',
+      teacherPrompt: '«На плате функция loop() крутит этот кирпичик бесконечно!»',
+    },
+    {
+      time: '48–53 мин',
+      childAction: 'Творческое задание: придумывает собственный танец робота',
+      teacherPrompt: '«Придумай короткое правило, которое при повторе нарисует узор»',
+    },
+    {
+      time: '53–55 мин',
+      childAction: 'Устная рефлексия: объясняет, зачем нужны циклы',
+      teacherPrompt: '«Когда цикл удобнее обычных команд?»',
+    },
+  ],
+};
 
 export const TeacherDrawer: React.FC<TeacherDrawerProps> = ({
+  currentLessonId,
   currentMissionId,
   missionTitle,
   teacherNote,
@@ -75,6 +121,8 @@ export const TeacherDrawer: React.FC<TeacherDrawerProps> = ({
 }) => {
   const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [showFullSchedule, setShowFullSchedule] = useState(false);
+
+  const schedule = LESSON_SCHEDULES[currentLessonId] || LESSON_SCHEDULES[1];
 
   return (
     <>
@@ -117,7 +165,7 @@ export const TeacherDrawer: React.FC<TeacherDrawerProps> = ({
             <div className="teacher-section">
               <div className="section-label">
                 <Clock size={16} aria-hidden="true" />
-                <span>Текущий этап (Задание {currentMissionId}): {missionTitle}</span>
+                <span>Текущий этап (Задание {currentMissionId}: {missionTitle})</span>
               </div>
               <div className="timing-pill">Тайминг: {teacherNote.timing}</div>
 
@@ -169,7 +217,7 @@ export const TeacherDrawer: React.FC<TeacherDrawerProps> = ({
                 onClick={() => setShowFullSchedule(!showFullSchedule)}
                 aria-expanded={showFullSchedule}
               >
-                <span>Полный сценарий урока (55–60 мин)</span>
+                <span>Сценарий занятия {currentLessonId} (55–60 мин)</span>
                 {showFullSchedule ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
 
@@ -184,7 +232,7 @@ export const TeacherDrawer: React.FC<TeacherDrawerProps> = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {LESSON_SCHEDULE.map((row, idx) => (
+                      {schedule.map((row, idx) => (
                         <tr key={idx}>
                           <td className="schedule-time">{row.time}</td>
                           <td>{row.childAction}</td>

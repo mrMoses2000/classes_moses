@@ -1,11 +1,12 @@
 import { CommandType } from '../types';
-import { MISSIONS } from '../data/missions';
+import { MISSIONS, LESSONS } from '../data/missions';
 
 export const STORAGE_KEY = 'robot_lesson_progress_v1';
 export const CURRENT_VERSION = 1;
 
 export interface StoredLessonState {
   version: number;
+  currentLessonId: number;
   currentMissionId: number;
   completedMissionIds: number[];
   programs: Record<number, CommandType[]>;
@@ -19,6 +20,7 @@ export function getDefaultStoredState(): StoredLessonState {
 
   return {
     version: CURRENT_VERSION,
+    currentLessonId: 1,
     currentMissionId: 1,
     completedMissionIds: [],
     programs: initialPrograms,
@@ -47,6 +49,12 @@ export function loadStoredProgress(): StoredLessonState {
     }
 
     // Validate fields safely
+    const currentLessonId =
+      typeof parsed.currentLessonId === 'number' &&
+      LESSONS.some((l) => l.id === parsed.currentLessonId)
+        ? parsed.currentLessonId
+        : 1;
+
     const currentMissionId =
       typeof parsed.currentMissionId === 'number' &&
       MISSIONS.some((m) => m.id === parsed.currentMissionId)
@@ -76,6 +84,7 @@ export function loadStoredProgress(): StoredLessonState {
 
     return {
       version: CURRENT_VERSION,
+      currentLessonId,
       currentMissionId,
       completedMissionIds,
       programs,
@@ -94,6 +103,7 @@ export function saveStoredProgress(state: StoredLessonState): boolean {
   try {
     const payload = JSON.stringify({
       version: CURRENT_VERSION,
+      currentLessonId: state.currentLessonId,
       currentMissionId: state.currentMissionId,
       completedMissionIds: state.completedMissionIds,
       programs: state.programs,

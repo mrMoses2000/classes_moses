@@ -53,6 +53,7 @@ describe('Progress Storage', () => {
   it('saves and reloads state accurately', () => {
     const sample = {
       version: 1,
+      currentLessonId: 1,
       currentMissionId: 2,
       completedMissionIds: [1],
       programs: {
@@ -91,6 +92,7 @@ describe('Progress Storage', () => {
   it('clears progress correctly', () => {
     saveStoredProgress({
       version: 1,
+      currentLessonId: 1,
       currentMissionId: 2,
       completedMissionIds: [1],
       programs: { 1: [], 2: [], 3: [] },

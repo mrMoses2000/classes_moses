@@ -8,6 +8,7 @@ interface CodeModalProps {
   onClose: () => void;
   commands: CommandType[];
   missionTitle: string;
+  lessonId?: number;
 }
 
 export const CodeModal: React.FC<CodeModalProps> = ({
@@ -15,6 +16,7 @@ export const CodeModal: React.FC<CodeModalProps> = ({
   onClose,
   commands,
   missionTitle,
+  lessonId = 1,
 }) => {
   const [copied, setCopied] = React.useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -35,22 +37,40 @@ export const CodeModal: React.FC<CodeModalProps> = ({
 
   if (!isOpen) return null;
 
-  const commandLines = commands.length === 0
-    ? '    // Программа пока пуста\n'
-    : commands
-        .map((cmd) => {
-          switch (cmd) {
-            case 'STEP':
-              return '    step();';
-            case 'TURN_LEFT':
-              return '    turn_left();';
-            case 'TURN_RIGHT':
-              return '    turn_right();';
-          }
-        })
-        .join('\n');
+  const commandLines =
+    commands.length === 0
+      ? '    // Программа пока пуста\n'
+      : commands
+          .map((cmd) => {
+            switch (cmd) {
+              case 'STEP':
+                return '    step();';
+              case 'TURN_LEFT':
+                return '    turn_left();';
+              case 'TURN_RIGHT':
+                return '    turn_right();';
+            }
+          })
+          .join('\n');
 
-  const codeSnippet = `// ${missionTitle}
+  const codeSnippet =
+    lessonId === 2
+      ? `// ${missionTitle}
+// В языке Си повторяющиеся действия объединяют в циклы с помощью for:
+
+#include <robot.h>
+
+void run_mission() {
+${commandLines}
+}
+
+/* 
+ * Как этот же алгоритм можно записать через цикл for:
+ * for (int step = 0; step < 3; step++) {
+ *     // повторяющийся кусочек команд
+ * }
+ */`
+      : `// ${missionTitle}
 // Похоже на код на языке Си:
 // В текстовом виде те же самые команды пишутся словами на английском со скобками ()
 
@@ -121,8 +141,16 @@ ${commandLines}
           </div>
 
           <div className="modal-pedagogy-note">
-            <strong>Обрати внимание:</strong> Каждая команда заканчивается точкой с запятой <code>;</code>.
-            Смысл команд остаётся тем же, что и на игровом поле. На 5–8 занятиях мы научимся писать такие команды словами!
+            {lessonId === 2 ? (
+              <>
+                <strong>Взгляд в будущее:</strong> Чтобы не писать одинаковые команды много раз, в языке Си используют циклы <code>for</code> или <code>while</code>. А на плате Arduino функция <code>loop()</code> повторяет команды бесконечно!
+              </>
+            ) : (
+              <>
+                <strong>Обрати внимание:</strong> Каждая команда заканчивается точкой с запятой <code>;</code>.
+                Смысл команд остаётся тем же, что и на игровом поле. На 5–8 занятиях мы научимся писать такие команды словами!
+              </>
+            )}
           </div>
         </div>
 

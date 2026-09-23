@@ -182,6 +182,137 @@ describe('Simulator Engine', () => {
     });
   });
 
+  describe('Lesson 2 - Mission 4: Staircase pattern (Loops / Repetition)', () => {
+    // start (0,4) east, goal (3,1), obstacles: (1,4), (2,3), (3,2)
+    const rules = {
+      gridWidth: 5,
+      gridHeight: 5,
+      goal: { x: 3, y: 1 },
+      obstacles: [
+        { x: 1, y: 4 },
+        { x: 2, y: 3 },
+        { x: 3, y: 2 },
+      ],
+    };
+    const start: RobotState = { x: 0, y: 4, direction: 'EAST' };
+
+    it('hits wall when moving straight east', () => {
+      const res = runSimulation(start, ['STEP'], rules);
+      expect(res.success).toBe(false);
+      expect(res.terminalStatus).toBe('HIT_WALL');
+      expect(res.failedAtCommandIndex).toBe(0);
+    });
+
+    it('succeeds with 3 stair steps (repeated turn_left, step, turn_right, step)', () => {
+      const singleStep: CommandType[] = ['TURN_LEFT', 'STEP', 'TURN_RIGHT', 'STEP'];
+      const program: CommandType[] = [
+        ...singleStep,
+        ...singleStep,
+        ...singleStep,
+      ];
+      const res = runSimulation(start, program, rules);
+      expect(res.success).toBe(true);
+      expect(res.terminalStatus).toBe('SUCCESS');
+      expect(res.finalState).toEqual({ x: 3, y: 1, direction: 'EAST' });
+    });
+
+    it('reports INCOMPLETE if only 2 stair steps executed', () => {
+      const singleStep: CommandType[] = ['TURN_LEFT', 'STEP', 'TURN_RIGHT', 'STEP'];
+      const program: CommandType[] = [...singleStep, ...singleStep];
+      const res = runSimulation(start, program, rules);
+      expect(res.success).toBe(false);
+      expect(res.terminalStatus).toBe('INCOMPLETE');
+      expect(res.finalState).toEqual({ x: 2, y: 2, direction: 'EAST' });
+    });
+  });
+
+  describe('Lesson 2 - Mission 5: Rhythmic obstacle bypass (Two waves)', () => {
+    // start (0,2) east, goal (4,2), obstacles (1,2), (3,2)
+    const rules = {
+      gridWidth: 5,
+      gridHeight: 5,
+      goal: { x: 4, y: 2 },
+      obstacles: [
+        { x: 1, y: 2 },
+        { x: 3, y: 2 },
+      ],
+    };
+    const start: RobotState = { x: 0, y: 2, direction: 'EAST' };
+
+    it('succeeds with two identical bypass waves', () => {
+      const wave1: CommandType[] = [
+        'TURN_LEFT',
+        'STEP',
+        'TURN_RIGHT',
+        'STEP',
+        'STEP',
+        'TURN_RIGHT',
+        'STEP',
+        'TURN_LEFT',
+      ];
+      const wave2: CommandType[] = [
+        'TURN_LEFT',
+        'STEP',
+        'TURN_RIGHT',
+        'STEP',
+        'STEP',
+        'TURN_RIGHT',
+        'STEP',
+      ];
+      const program = [...wave1, ...wave2];
+      const res = runSimulation(start, program, rules);
+      expect(res.success).toBe(true);
+      expect(res.terminalStatus).toBe('SUCCESS');
+      expect(res.finalState.x).toBe(4);
+      expect(res.finalState.y).toBe(2);
+    });
+
+    it('hits second obstacle if second wave is skipped', () => {
+      const wave1: CommandType[] = [
+        'TURN_LEFT',
+        'STEP',
+        'TURN_RIGHT',
+        'STEP',
+        'STEP',
+        'TURN_RIGHT',
+        'STEP',
+        'TURN_LEFT',
+        'STEP', // attempts to walk straight into (3,2)!
+      ];
+      const res = runSimulation(start, wave1, rules);
+      expect(res.success).toBe(false);
+      expect(res.terminalStatus).toBe('HIT_WALL');
+      expect(res.failedAtCommandIndex).toBe(8);
+    });
+  });
+
+  describe('Lesson 2 - Mission 6: Fix loop counter (Off-by-one debugging)', () => {
+    // start (0,0) south, goal (0,4), no obstacles
+    const rules = {
+      gridWidth: 5,
+      gridHeight: 5,
+      goal: { x: 0, y: 4 },
+      obstacles: [],
+    };
+    const start: RobotState = { x: 0, y: 0, direction: 'SOUTH' };
+
+    it('initial 3 steps stop short at (0,3)', () => {
+      const preset: CommandType[] = ['STEP', 'STEP', 'STEP'];
+      const res = runSimulation(start, preset, rules);
+      expect(res.success).toBe(false);
+      expect(res.terminalStatus).toBe('INCOMPLETE');
+      expect(res.finalState).toEqual({ x: 0, y: 3, direction: 'SOUTH' });
+    });
+
+    it('adding 4th step reaches goal (0,4)', () => {
+      const fixed: CommandType[] = ['STEP', 'STEP', 'STEP', 'STEP'];
+      const res = runSimulation(start, fixed, rules);
+      expect(res.success).toBe(true);
+      expect(res.terminalStatus).toBe('SUCCESS');
+      expect(res.finalState).toEqual({ x: 0, y: 4, direction: 'SOUTH' });
+    });
+  });
+
   describe('Safety limits', () => {
     it('aborts cleanly if commands exceed maximum limit', () => {
       const rules = {

@@ -1,9 +1,12 @@
 import React from 'react';
-import { Mission } from '../types';
+import { Mission, LessonInfo } from '../types';
 import { Check, Compass, Code2, Map } from 'lucide-react';
 import './Header.css';
 
 interface HeaderProps {
+  lessons: LessonInfo[];
+  currentLessonId: number;
+  onSelectLesson: (lessonId: number) => void;
   missions: Mission[];
   currentMissionId: number;
   completedMissionIds: number[];
@@ -13,6 +16,9 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  lessons,
+  currentLessonId,
+  onSelectLesson,
   missions,
   currentMissionId,
   completedMissionIds,
@@ -20,6 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCode,
   onOpenRoadmap,
 }) => {
+  const currentLesson = lessons.find((l) => l.id === currentLessonId) || lessons[0];
+
   return (
     <header className="header-container">
       <div className="header-brand-row">
@@ -29,8 +37,34 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <h1 className="brand-title">Робот и код</h1>
-            <span className="brand-subtitle">Занятие 1: Доставь робота к маяку</span>
+            <span className="brand-subtitle">{currentLesson.title}</span>
           </div>
+        </div>
+
+        {/* Lesson Switcher */}
+        <div
+          className="lesson-switcher"
+          role="radiogroup"
+          aria-label="Выбор темы занятия"
+        >
+          {lessons.map((lesson) => {
+            const isActive = lesson.id === currentLessonId;
+            const shortName = lesson.id === 1 ? 'Команды' : 'Повторение';
+            return (
+              <button
+                key={lesson.id}
+                type="button"
+                id={`btn-lesson-${lesson.id}`}
+                role="radio"
+                aria-checked={isActive}
+                className={`lesson-pill ${isActive ? 'lesson-pill-active' : ''}`}
+                onClick={() => onSelectLesson(lesson.id)}
+              >
+                <span className="pill-badge">{lesson.themeBadge}</span>
+                <span className="pill-title">{shortName}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="header-actions">
@@ -60,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       <nav className="mission-nav" aria-label="Выбор задания">
         <div className="nav-tabs" role="tablist">
-          {missions.map((mission) => {
+          {missions.map((mission, index) => {
             const isSelected = currentMissionId === mission.id;
             const isCompleted = completedMissionIds.includes(mission.id);
 
@@ -77,8 +111,10 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
                 onClick={() => onSelectMission(mission.id)}
               >
-                <span className="tab-number">{mission.id}</span>
-                <span className="tab-title">{mission.title.replace(`Задание ${mission.id}. `, '')}</span>
+                <span className="tab-number">{index + 1}</span>
+                <span className="tab-title">
+                  {mission.title.replace(/^Задание \d+\.\s*/, '')}
+                </span>
                 {isCompleted && (
                   <Check size={14} className="tab-check-icon" aria-hidden="true" />
                 )}
