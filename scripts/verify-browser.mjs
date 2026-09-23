@@ -29,7 +29,7 @@ function getChromePath() {
 }
 
 const CHROME_PATH = getChromePath();
-const BASE_URL = 'http://localhost:4173';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 const SCREENSHOT_DIR = path.resolve('test-screenshots');
 
 if (!fs.existsSync(SCREENSHOT_DIR)) {
