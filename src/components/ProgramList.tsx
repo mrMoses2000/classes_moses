@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Trash2,
   XCircle,
+  GitBranch,
 } from 'lucide-react';
 import './ProgramList.css';
 
@@ -51,6 +52,18 @@ export const ProgramList: React.FC<ProgramListProps> = ({
           label: 'Повернуть направо',
           icon: <RotateCw size={16} aria-hidden="true" />,
           code: 'turn_right()',
+        };
+      case 'IF_WALL_LEFT':
+        return {
+          label: 'Если стена ➔ Влево, иначе Шаг',
+          icon: <GitBranch size={16} aria-hidden="true" />,
+          code: 'if_wall_left()',
+        };
+      case 'IF_WALL_RIGHT':
+        return {
+          label: 'Если стена ➔ Вправо, иначе Шаг',
+          icon: <GitBranch size={16} aria-hidden="true" />,
+          code: 'if_wall_right()',
         };
     }
   };

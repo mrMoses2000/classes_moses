@@ -460,6 +460,12 @@ export const App: React.FC = () => {
       } else if (e.key === '3') {
         e.preventDefault();
         handleAddCommand('TURN_RIGHT');
+      } else if (e.key === '4' && currentLessonId >= 3) {
+        e.preventDefault();
+        handleAddCommand('IF_WALL_LEFT');
+      } else if (e.key === '5' && currentLessonId >= 3) {
+        e.preventDefault();
+        handleAddCommand('IF_WALL_RIGHT');
       } else if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
         if (!isRunning) {
@@ -479,6 +485,7 @@ export const App: React.FC = () => {
     isCodeOpen,
     isRoadmapOpen,
     isRunning,
+    currentLessonId,
     currentProgram.length,
     handleAddCommand,
     handleRun,
@@ -608,6 +615,7 @@ export const App: React.FC = () => {
             <CommandPalette
               onAddCommand={handleAddCommand}
               disabled={isRunning && !isPaused}
+              lessonId={currentLessonId}
             />
 
             {/* Program Sequence List */}
@@ -662,6 +670,7 @@ export const App: React.FC = () => {
         isOpen={isRoadmapOpen}
         onClose={() => setIsRoadmapOpen(false)}
         showReflection={showReflection && areAllCompleted}
+        currentLessonId={currentLessonId}
       />
     </div>
   );

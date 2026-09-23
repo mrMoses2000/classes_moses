@@ -94,6 +94,53 @@ export function executeSingleCommand(
     };
   }
 
+  if (command === 'IF_WALL_LEFT' || command === 'IF_WALL_RIGHT') {
+    const offset = getForwardOffset(currentState.direction);
+    const targetCoord: Coordinate = {
+      x: currentState.x + offset.dx,
+      y: currentState.y + offset.dy,
+    };
+    const hasObstacleAhead =
+      isOutOfBounds(targetCoord, rules.gridWidth, rules.gridHeight) ||
+      isObstacle(targetCoord, rules.obstacles);
+
+    if (hasObstacleAhead) {
+      // Condition TRUE (wall/boundary ahead) -> turn
+      const nextDir =
+        command === 'IF_WALL_LEFT'
+          ? turnLeft(currentState.direction)
+          : turnRight(currentState.direction);
+      const nextState: RobotState = { ...currentState, direction: nextDir };
+      const turnName = command === 'IF_WALL_LEFT' ? 'налево' : 'направо';
+      return {
+        nextState,
+        status: 'OK',
+        message: `Шаг ${stepNumber}: сенсор обнаружил стену! Робот повернул ${turnName}.`,
+      };
+    } else {
+      // Condition FALSE (path is clear) -> step forward!
+      const nextState: RobotState = {
+        x: targetCoord.x,
+        y: targetCoord.y,
+        direction: currentState.direction,
+      };
+
+      if (isGoal(targetCoord, rules.goal)) {
+        return {
+          nextState,
+          status: 'GOAL_REACHED',
+          message: `Робот добрался до маяка на шаге ${stepNumber}!`,
+        };
+      }
+
+      return {
+        nextState,
+        status: 'OK',
+        message: `Шаг ${stepNumber}: путь свободен, робот шагнул вперёд.`,
+      };
+    }
+  }
+
   // command === 'STEP'
   const offset = getForwardOffset(currentState.direction);
   const targetCoord: Coordinate = {

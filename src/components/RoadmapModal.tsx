@@ -12,12 +12,14 @@ interface RoadmapModalProps {
   isOpen: boolean;
   onClose: () => void;
   showReflection?: boolean;
+  currentLessonId?: number;
 }
 
 export const RoadmapModal: React.FC<RoadmapModalProps> = ({
   isOpen,
   onClose,
   showReflection = false,
+  currentLessonId = 1,
 }) => {
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -96,7 +98,7 @@ export const RoadmapModal: React.FC<RoadmapModalProps> = ({
 
           <div className="roadmap-grid">
             {ROADMAP_LESSONS.map((lesson) => {
-              const isToday = lesson.id === 1;
+              const isToday = lesson.id === currentLessonId;
               return (
                 <div
                   key={lesson.id}

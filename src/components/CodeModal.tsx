@@ -49,12 +49,34 @@ export const CodeModal: React.FC<CodeModalProps> = ({
                 return '    turn_left();';
               case 'TURN_RIGHT':
                 return '    turn_right();';
+              case 'IF_WALL_LEFT':
+                return '    if (is_wall_ahead()) { turn_left(); } else { step(); }';
+              case 'IF_WALL_RIGHT':
+                return '    if (is_wall_ahead()) { turn_right(); } else { step(); }';
             }
           })
           .join('\n');
 
   const codeSnippet =
-    lessonId === 2
+    lessonId === 3
+      ? `// ${missionTitle}
+// Ветвление в языке Си (if / else): выбор действия по сигналу датчика
+
+#include <robot.h>
+
+void run_mission() {
+${commandLines}
+}
+
+/* 
+ * Как процессор Arduino читает сигнал датчика-бампера:
+ * if (digitalRead(BUMPER_PIN) == LOW) {
+ *     turn_left();  // препятствие обнаружено!
+ * } else {
+ *     step();       // путь свободен
+ * }
+ */`
+      : lessonId === 2
       ? `// ${missionTitle}
 // В языке Си повторяющиеся действия объединяют в циклы с помощью for:
 
@@ -141,7 +163,11 @@ ${commandLines}
           </div>
 
           <div className="modal-pedagogy-note">
-            {lessonId === 2 ? (
+            {lessonId === 3 ? (
+              <>
+                <strong>Взгляд в будущее:</strong> Конструкция <code>if (...) &#123; ... &#125; else &#123; ... &#125;</code> позволяет роботу принимать решения. В настоящей робототехнике микроконтроллер считывает сигнал датчика через <code>digitalRead()</code> и выбирает ветку алгоритма!
+              </>
+            ) : lessonId === 2 ? (
               <>
                 <strong>Взгляд в будущее:</strong> Чтобы не писать одинаковые команды много раз, в языке Си используют циклы <code>for</code> или <code>while</code>. А на плате Arduino функция <code>loop()</code> повторяет команды бесконечно!
               </>

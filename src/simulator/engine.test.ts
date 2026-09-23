@@ -313,6 +313,170 @@ describe('Simulator Engine', () => {
     });
   });
 
+  describe('Conditional Commands (IF_WALL_LEFT, IF_WALL_RIGHT)', () => {
+    it('steps forward when no wall is ahead', () => {
+      const rules = {
+        gridWidth: 5,
+        gridHeight: 5,
+        goal: { x: 4, y: 0 },
+        obstacles: [],
+      };
+      const start: RobotState = { x: 0, y: 0, direction: 'EAST' };
+      // Way ahead (1,0) is clear -> should step forward, not turn
+      const res = runSimulation(start, ['IF_WALL_LEFT'], rules);
+      expect(res.finalState).toEqual({ x: 1, y: 0, direction: 'EAST' });
+    });
+
+    it('turns left when obstacle is ahead with IF_WALL_LEFT', () => {
+      const rules = {
+        gridWidth: 5,
+        gridHeight: 5,
+        goal: { x: 4, y: 4 },
+        obstacles: [{ x: 1, y: 0 }],
+      };
+      const start: RobotState = { x: 0, y: 0, direction: 'EAST' };
+      // (1,0) is an obstacle -> should turn left without moving
+      const res = runSimulation(start, ['IF_WALL_LEFT'], rules);
+      expect(res.finalState).toEqual({ x: 0, y: 0, direction: 'NORTH' });
+    });
+
+    it('turns right when grid edge is ahead with IF_WALL_RIGHT', () => {
+      const rules = {
+        gridWidth: 5,
+        gridHeight: 5,
+        goal: { x: 4, y: 4 },
+        obstacles: [],
+      };
+      // Robot at border (4, 0) facing EAST -> edge of grid is a wall!
+      const start: RobotState = { x: 4, y: 0, direction: 'EAST' };
+      const res = runSimulation(start, ['IF_WALL_RIGHT'], rules);
+      expect(res.finalState).toEqual({ x: 4, y: 0, direction: 'SOUTH' });
+    });
+  });
+
+  describe('Lesson 3 - Mission 7: Smart sensor turn', () => {
+    // start (0, 2) EAST, obstacles: [(2,2), (3,2), (4,2)], goal (2,0)
+    const rules = {
+      gridWidth: 5,
+      gridHeight: 5,
+      goal: { x: 2, y: 0 },
+      obstacles: [
+        { x: 2, y: 2 },
+        { x: 3, y: 2 },
+        { x: 4, y: 2 },
+      ],
+    };
+    const start: RobotState = { x: 0, y: 2, direction: 'EAST' };
+
+    it('blind forward steps crash into obstacle (2,2)', () => {
+      const commands: CommandType[] = ['STEP', 'STEP'];
+      const res = runSimulation(start, commands, rules);
+      expect(res.success).toBe(false);
+      expect(res.terminalStatus).toBe('HIT_WALL');
+      expect(res.failedAtCommandIndex).toBe(1);
+    });
+
+    it('succeeds using conditional turn at the wall', () => {
+      // (0,2) EAST:
+      // IF_WALL_LEFT -> (1,2) EAST (clear)
+      // IF_WALL_LEFT -> turns NORTH because (2,2) is wall!
+      // STEP -> (1,1) NORTH
+      // STEP -> (1,0) NORTH
+      // TURN_RIGHT -> EAST
+      // STEP -> (2,0) EAST = GOAL!
+      const commands: CommandType[] = [
+        'IF_WALL_LEFT',
+        'IF_WALL_LEFT',
+        'STEP',
+        'STEP',
+        'TURN_RIGHT',
+        'STEP',
+      ];
+      const res = runSimulation(start, commands, rules);
+      expect(res.success).toBe(true);
+      expect(res.terminalStatus).toBe('SUCCESS');
+      expect(res.finalState).toEqual({ x: 2, y: 0, direction: 'EAST' });
+    });
+  });
+
+  describe('Lesson 3 - Mission 8: Maze with double fork', () => {
+    const rules = {
+      gridWidth: 5,
+      gridHeight: 5,
+      goal: { x: 4, y: 4 },
+      obstacles: [
+        { x: 1, y: 1 },
+        { x: 1, y: 2 },
+        { x: 3, y: 2 },
+        { x: 3, y: 3 },
+      ],
+    };
+    const start: RobotState = { x: 0, y: 0, direction: 'SOUTH' };
+
+    it('early eastward turn crashes into reef (1,1)', () => {
+      const commands: CommandType[] = ['STEP', 'TURN_LEFT', 'STEP'];
+      const res = runSimulation(start, commands, rules);
+      expect(res.success).toBe(false);
+      expect(res.terminalStatus).toBe('HIT_WALL');
+    });
+
+    it('navigates double-fork maze successfully to (4,4)', () => {
+      const commands: CommandType[] = [
+        'STEP', // (0,1)
+        'STEP', // (0,2)
+        'STEP', // (0,3)
+        'TURN_LEFT', // EAST
+        'STEP', // (1,3)
+        'STEP', // (2,3)
+        'IF_WALL_LEFT', // (3,3) is wall -> turns NORTH!
+        'STEP', // (2,2)
+        'STEP', // (2,1)
+        'TURN_RIGHT', // EAST
+        'STEP', // (3,1)
+        'STEP', // (4,1)
+        'IF_WALL_RIGHT', // border ahead -> turns SOUTH!
+        'STEP', // (4,2)
+        'STEP', // (4,3)
+        'STEP', // (4,4) GOAL!
+      ];
+      const res = runSimulation(start, commands, rules);
+      expect(res.success).toBe(true);
+      expect(res.terminalStatus).toBe('SUCCESS');
+      expect(res.finalState).toEqual({ x: 4, y: 4, direction: 'SOUTH' });
+    });
+  });
+
+  describe('Lesson 3 - Mission 9: False branch debugging', () => {
+    const rules = {
+      gridWidth: 5,
+      gridHeight: 5,
+      goal: { x: 1, y: 1 },
+      obstacles: [
+        { x: 2, y: 2 },
+        { x: 1, y: 3 },
+        { x: 2, y: 3 },
+        { x: 3, y: 3 },
+      ],
+    };
+    const start: RobotState = { x: 0, y: 2, direction: 'EAST' };
+
+    it('initial program with IF_WALL_RIGHT crashes into south trap (1,3)', () => {
+      const buggy: CommandType[] = ['STEP', 'IF_WALL_RIGHT', 'STEP'];
+      const res = runSimulation(start, buggy, rules);
+      expect(res.success).toBe(false);
+      expect(res.terminalStatus).toBe('HIT_WALL');
+      expect(res.failedAtCommandIndex).toBe(2);
+    });
+
+    it('fixing to IF_WALL_LEFT reaches northern goal (1,1)', () => {
+      const fixed: CommandType[] = ['STEP', 'IF_WALL_LEFT', 'STEP'];
+      const res = runSimulation(start, fixed, rules);
+      expect(res.success).toBe(true);
+      expect(res.terminalStatus).toBe('SUCCESS');
+      expect(res.finalState).toEqual({ x: 1, y: 1, direction: 'NORTH' });
+    });
+  });
+
   describe('Safety limits', () => {
     it('aborts cleanly if commands exceed maximum limit', () => {
       const rules = {

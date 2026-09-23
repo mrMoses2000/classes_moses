@@ -73,7 +73,12 @@ export function loadStoredProgress(): StoredLessonState {
       if (
         Array.isArray(savedProgram) &&
         savedProgram.every(
-          (c) => c === 'STEP' || c === 'TURN_LEFT' || c === 'TURN_RIGHT'
+          (c) =>
+            c === 'STEP' ||
+            c === 'TURN_LEFT' ||
+            c === 'TURN_RIGHT' ||
+            c === 'IF_WALL_LEFT' ||
+            c === 'IF_WALL_RIGHT'
         )
       ) {
         programs[mission.id] = savedProgram;

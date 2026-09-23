@@ -1,6 +1,9 @@
-export type Direction = 'NORTH' | 'EAST' | 'SOUTH' | 'WEST';
-
-export type CommandType = 'STEP' | 'TURN_LEFT' | 'TURN_RIGHT';
+export type CommandType =
+  | 'STEP'
+  | 'TURN_LEFT'
+  | 'TURN_RIGHT'
+  | 'IF_WALL_LEFT'
+  | 'IF_WALL_RIGHT';
 
 export interface CommandItem {
   id: string;
@@ -11,6 +14,8 @@ export interface Coordinate {
   x: number;
   y: number;
 }
+
+export type Direction = 'NORTH' | 'EAST' | 'SOUTH' | 'WEST';
 
 export interface RobotState {
   x: number;
