@@ -23,7 +23,8 @@ import { CodeModal } from './components/CodeModal';
 import { RoadmapModal } from './components/RoadmapModal';
 import { TeacherDrawer } from './components/TeacherDrawer';
 import { Header } from './components/Header';
-import { Target, HelpCircle } from 'lucide-react';
+import { CStudio } from './components/CStudio';
+import { Target, HelpCircle, LayoutGrid, Code2 as CodeIcon } from 'lucide-react';
 import './App.css';
 
 export const App: React.FC = () => {
@@ -32,6 +33,7 @@ export const App: React.FC = () => {
   const [currentLessonId, setCurrentLessonId] = useState<number>(1);
   const [currentMissionId, setCurrentMissionId] = useState<number>(1);
   const [completedMissionIds, setCompletedMissionIds] = useState<number[]>([]);
+  const [editorMode, setEditorMode] = useState<'BLOCKS' | 'C_CODE'>('BLOCKS');
   const [programs, setPrograms] = useState<Record<number, CommandType[]>>(() => {
     const initial: Record<number, CommandType[]> = {};
     for (const m of MISSIONS) {
@@ -241,39 +243,41 @@ export const App: React.FC = () => {
   }, [currentMissionId, resetAttempt]);
 
   // Full Automated Simulation Run
-  const handleRun = useCallback(() => {
-    if (isRunning) return;
+  const handleRun = useCallback(
+    (overrideProgram?: CommandType[]) => {
+      const progToRun = overrideProgram || currentProgram;
+      if (isRunning) return;
 
-    if (currentProgram.length === 0) {
-      setTerminalStatus('INCOMPLETE');
-      setTerminalMessage('В программе нет команд. Добавь команды из панели слева!');
-      return;
-    }
-
-    // Reset board before animating
-    setIsRunning(true);
-    setIsPaused(false);
-    setIsStepMode(false);
-    setStepPointer(0);
-    setErrorStepIndex(null);
-    setHighlightObstacle(null);
-    setTerminalStatus('READY');
-    setTerminalMessage('');
-
-    setRobotState(currentMission.startState);
-    setVisitedCoords([{ x: currentMission.startState.x, y: currentMission.startState.y }]);
-
-    // Calculate full deterministic trace upfront
-    const simResult: SimulationResult = runSimulation(
-      currentMission.startState,
-      currentProgram,
-      {
-        gridWidth: currentMission.gridWidth,
-        gridHeight: currentMission.gridHeight,
-        goal: currentMission.goal,
-        obstacles: currentMission.obstacles,
+      if (progToRun.length === 0) {
+        setTerminalStatus('INCOMPLETE');
+        setTerminalMessage('В программе нет команд. Добавь команды из панели слева!');
+        return;
       }
-    );
+
+      // Reset board before animating
+      setIsRunning(true);
+      setIsPaused(false);
+      setIsStepMode(false);
+      setStepPointer(0);
+      setErrorStepIndex(null);
+      setHighlightObstacle(null);
+      setTerminalStatus('READY');
+      setTerminalMessage('');
+
+      setRobotState(currentMission.startState);
+      setVisitedCoords([{ x: currentMission.startState.x, y: currentMission.startState.y }]);
+
+      // Calculate full deterministic trace upfront
+      const simResult: SimulationResult = runSimulation(
+        currentMission.startState,
+        progToRun,
+        {
+          gridWidth: currentMission.gridWidth,
+          gridHeight: currentMission.gridHeight,
+          goal: currentMission.goal,
+          obstacles: currentMission.obstacles,
+        }
+      );
 
     let currentStep = 0;
     const playNextStep = () => {
@@ -609,26 +613,79 @@ export const App: React.FC = () => {
             />
           </section>
 
-          {/* Right Column: Command Palette, Program Sequence & Execution Controls */}
+          {/* Right Column: Command Palette / C Studio & Execution Controls */}
           <section className="right-panel" aria-label="Мастерская команд программы">
-            {/* Command Palette */}
-            <CommandPalette
-              onAddCommand={handleAddCommand}
-              disabled={isRunning && !isPaused}
-              lessonId={currentLessonId}
-            />
+            {/* Mode Switcher */}
+            <div className="mode-toggle-bar" role="tablist" aria-label="Режим составления программы">
+              <button
+                type="button"
+                role="tab"
+                id="tab-mode-blocks"
+                aria-selected={editorMode === 'BLOCKS'}
+                className={`mode-toggle-btn ${editorMode === 'BLOCKS' ? 'mode-active' : ''}`}
+                onClick={() => setEditorMode('BLOCKS')}
+              >
+                <LayoutGrid size={16} aria-hidden="true" />
+                <span>🧩 Блоки команд</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="tab-mode-code"
+                aria-selected={editorMode === 'C_CODE'}
+                className={`mode-toggle-btn ${editorMode === 'C_CODE' ? 'mode-active' : ''}`}
+                onClick={() => setEditorMode('C_CODE')}
+              >
+                <CodeIcon size={16} aria-hidden="true" />
+                <span>💻 Редактор Си (IDE)</span>
+              </button>
+            </div>
 
-            {/* Program Sequence List */}
-            <ProgramList
-              commands={currentProgram}
-              activeStepIndex={activeStepIndex}
-              errorStepIndex={errorStepIndex}
-              onRemoveCommand={handleRemoveCommand}
-              onMoveUp={handleMoveUp}
-              onMoveDown={handleMoveDown}
-              onClear={handleClearProgram}
-              disabled={isRunning && !isPaused}
-            />
+            {editorMode === 'BLOCKS' ? (
+              <>
+                {/* Command Palette */}
+                <CommandPalette
+                  onAddCommand={handleAddCommand}
+                  disabled={isRunning && !isPaused}
+                  lessonId={currentLessonId}
+                />
+
+                {/* Program Sequence List */}
+                <ProgramList
+                  commands={currentProgram}
+                  activeStepIndex={activeStepIndex}
+                  errorStepIndex={errorStepIndex}
+                  onRemoveCommand={handleRemoveCommand}
+                  onMoveUp={handleMoveUp}
+                  onMoveDown={handleMoveDown}
+                  onClear={handleClearProgram}
+                  disabled={isRunning && !isPaused}
+                />
+              </>
+            ) : (
+              <CStudio
+                initialCommands={currentProgram}
+                startState={currentMission.startState}
+                gridRules={{
+                  gridWidth: currentMission.gridWidth,
+                  gridHeight: currentMission.gridHeight,
+                  goal: currentMission.goal,
+                  obstacles: currentMission.obstacles,
+                }}
+                missionTitle={currentMission.title}
+                onApplyCompiledCommands={(compiledCmds) => {
+                  setPrograms((prev) => ({
+                    ...prev,
+                    [currentMissionId]: compiledCmds,
+                  }));
+                  resetAttempt();
+                }}
+                onRunSimulation={(cmds) => {
+                  handleRun(cmds);
+                }}
+                disabled={isRunning && !isPaused}
+              />
+            )}
 
             {/* Execution Controls */}
             <Controls
