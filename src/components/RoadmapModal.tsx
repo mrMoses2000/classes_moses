@@ -13,6 +13,7 @@ interface RoadmapModalProps {
   onClose: () => void;
   showReflection?: boolean;
   currentLessonId?: number;
+  onSelectLesson?: (lessonId: number) => void;
 }
 
 export const RoadmapModal: React.FC<RoadmapModalProps> = ({
@@ -20,6 +21,7 @@ export const RoadmapModal: React.FC<RoadmapModalProps> = ({
   onClose,
   showReflection = false,
   currentLessonId = 1,
+  onSelectLesson,
 }) => {
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -102,7 +104,25 @@ export const RoadmapModal: React.FC<RoadmapModalProps> = ({
               return (
                 <div
                   key={lesson.id}
-                  className={`roadmap-item ${isToday ? 'roadmap-item-current' : ''}`}
+                  className={`roadmap-item ${isToday ? 'roadmap-item-current' : ''} ${
+                    onSelectLesson ? 'roadmap-item-clickable' : ''
+                  }`}
+                  onClick={() => {
+                    if (onSelectLesson) {
+                      onSelectLesson(lesson.id);
+                      onClose();
+                    }
+                  }}
+                  role={onSelectLesson ? 'button' : undefined}
+                  tabIndex={onSelectLesson ? 0 : undefined}
+                  title={onSelectLesson ? `Перейти к занятию ${lesson.id}` : undefined}
+                  onKeyDown={(e) => {
+                    if (onSelectLesson && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      onSelectLesson(lesson.id);
+                      onClose();
+                    }
+                  }}
                 >
                   <div className="lesson-badge-row">
                     <span className="lesson-num">Тема {lesson.id}</span>

@@ -64,6 +64,7 @@ export interface LessonInfo {
   title: string;
   subtitle: string;
   themeBadge: string;
+  shortName?: string;
 }
 
 export interface Mission {

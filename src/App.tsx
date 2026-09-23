@@ -671,6 +671,7 @@ export const App: React.FC = () => {
         onClose={() => setIsRoadmapOpen(false)}
         showReflection={showReflection && areAllCompleted}
         currentLessonId={currentLessonId}
+        onSelectLesson={handleSelectLesson}
       />
     </div>
   );

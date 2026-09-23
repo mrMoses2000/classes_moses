@@ -105,6 +105,21 @@
   transition: all var(--duration-fast) ease;
 }
 
+.roadmap-item-clickable {
+  cursor: pointer;
+}
+
+.roadmap-item-clickable:hover {
+  border-color: var(--color-primary-action);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.roadmap-item-clickable:focus-visible {
+  outline: 2px solid var(--color-primary-action);
+  outline-offset: 1px;
+}
+
 .roadmap-item-current {
   border-color: var(--color-goal);
   background-color: #f2f8fb;
