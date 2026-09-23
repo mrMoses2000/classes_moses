@@ -1,0 +1,174 @@
+.grid-container {
+  display: grid;
+  width: 100%;
+  max-width: 440px;
+  aspect-ratio: 1 / 1;
+  background-color: var(--color-bg-card);
+  border: 3px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin: 0 auto;
+  gap: 3px;
+  padding: 6px;
+  user-select: none;
+}
+
+.grid-cell {
+  position: relative;
+  background-color: var(--color-bg-cell);
+  border: 1px solid var(--color-bg-cell-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: background-color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+}
+
+.cell-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--color-border-subtle);
+  opacity: 0.6;
+}
+
+.cell-visited {
+  background-color: #faf5ed;
+}
+
+.cell-visited::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-robot);
+  opacity: 0.25;
+}
+
+/* Obstacle */
+.cell-obstacle {
+  background-color: var(--color-obstacle-bg);
+  border-color: var(--color-obstacle);
+}
+
+.cell-obstacle-hit {
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger-action);
+  animation: pulse-danger 0.5s ease-in-out;
+}
+
+@keyframes pulse-danger {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.obstacle-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-obstacle);
+  gap: 2px;
+}
+
+.obstacle-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.obstacle-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-obstacle);
+}
+
+/* Goal / Lighthouse */
+.goal-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-goal);
+  gap: 2px;
+  animation: gentle-glow 2s infinite alternate ease-in-out;
+}
+
+@keyframes gentle-glow {
+  0% { opacity: 0.85; transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1.02); }
+}
+
+.goal-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.goal-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-goal);
+}
+
+/* Robot */
+.robot-marker {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 2;
+}
+
+.robot-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-robot);
+}
+
+.robot-icon {
+  width: 44px;
+  height: 44px;
+  filter: drop-shadow(0 2px 4px rgba(200, 90, 23, 0.25));
+}
+
+.robot-label {
+  position: absolute;
+  bottom: 2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-robot);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .grid-container {
+    max-width: 320px;
+    gap: 2px;
+    padding: 4px;
+  }
+  .robot-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .obstacle-icon {
+    width: 26px;
+    height: 26px;
+  }
+  .goal-icon {
+    width: 26px;
+    height: 26px;
+  }
+}

@@ -1,0 +1,155 @@
+.roadmap-modal-card {
+  max-width: 760px;
+}
+
+.roadmap-body {
+  gap: 16px;
+}
+
+.reflection-banner {
+  background-color: var(--color-success-bg);
+  border: 1px solid #b6dec9;
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reflection-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reflection-icon {
+  color: var(--color-primary-action);
+}
+
+.reflection-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary-action);
+}
+
+.reflection-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.goal-highlight-card {
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goal-badge-row {
+  display: flex;
+  align-items: center;
+}
+
+.goal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-goal);
+  background-color: var(--color-goal-bg);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.goal-main-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+
+.goal-subtext {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.roadmap-item {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all var(--duration-fast) ease;
+}
+
+.roadmap-item-current {
+  border-color: var(--color-goal);
+  background-color: #f2f8fb;
+  box-shadow: 0 0 0 1px var(--color-goal);
+}
+
+.lesson-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lesson-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.badge-today {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background-color: var(--color-robot-bg);
+  color: var(--color-robot);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.lesson-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.lesson-detail {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
