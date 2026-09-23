@@ -69,9 +69,33 @@ export interface Mission {
   teacherNote: TeacherNote;
 }
 
+export type LessonStatus = 'available' | 'planned';
+
 export interface RoadmapLesson {
   id: number;
   title: string;
   practicalResult: string;
   transitionCondition: string;
+  status: LessonStatus;
+  trackId: number;
+  trackTitle: string;
+}
+
+export interface CourseTrack {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  tangibleResult: string;
+  topicRange: string;
+  badge: string;
+}
+
+export interface TeacherProfile {
+  name: string;
+  role: string;
+  experienceSummary: string;
+  highlights: string[];
+  principles: string[];
+  githubUrl: string;
 }

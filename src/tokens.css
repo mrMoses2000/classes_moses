@@ -1,83 +1,175 @@
 :root {
-  /* Surfaces */
-  --color-bg-page: #fbf9f5;
-  --color-bg-card: #ffffff;
-  --color-bg-subtle: #f3efe6;
-  --color-bg-cell: #f8f6f0;
-  --color-bg-cell-border: #e6dfd3;
-  --color-bg-hover: #ece6da;
+  /* ==========================================================================
+     Primer Foundations (Color, Typography, Spacing, Radius, Elevation)
+     Adapted for "Робот и код" (Brand UI + Product UI)
+     ========================================================================== */
 
-  /* Text */
-  --color-text-primary: #1f1c18;
-  --color-text-secondary: #524d45;
-  --color-text-muted: #736c62;
-  --color-text-inverse: #ffffff;
+  /* Canvas / Surfaces */
+  --bgColor-default: #ffffff;
+  --bgColor-muted: #f6f8fa;
+  --bgColor-subtle: #f0f2f5;
+  --bgColor-inset: #eaeef2;
+  --bgColor-emphasis: #1f2328;
+
+  /* Backward-compatible surfaces */
+  --color-bg-page: var(--bgColor-muted);
+  --color-bg-card: var(--bgColor-default);
+  --color-bg-subtle: var(--bgColor-subtle);
+  --color-bg-cell: #ffffff;
+  --color-bg-cell-border: var(--borderColor-default);
+  --color-bg-hover: #eef1f5;
+
+  /* Foreground / Typography */
+  --fgColor-default: #1f2328;
+  --fgColor-muted: #59636e;
+  --fgColor-subtle: #6e7781;
+  --fgColor-onEmphasis: #ffffff;
+  --fgColor-accent: #0969da;
+  --fgColor-accent-hover: #0854ad;
+  --fgColor-success: #1a7f37;
+  --fgColor-danger: #cf222e;
+  --fgColor-attention: #9a6700;
+
+  /* Backward-compatible text colors */
+  --color-text-primary: var(--fgColor-default);
+  --color-text-secondary: var(--fgColor-muted);
+  --color-text-muted: var(--fgColor-subtle);
+  --color-text-inverse: var(--fgColor-onEmphasis);
 
   /* Borders */
-  --color-border-subtle: #e5ded3;
-  --color-border-strong: #c8bfb0;
-  --color-border-focus: #0f5979;
+  --borderColor-default: #d0d7de;
+  --borderColor-muted: #eaeef2;
+  --borderColor-subtle: rgba(31, 35, 40, 0.15);
+  --borderColor-accent: #54aeff;
+  --borderColor-focus: #0969da;
+  --borderColor-success: #4ac26b;
+  --borderColor-danger: #ff8182;
 
-  /* Workshop Roles & Accents */
-  --color-robot: #c85a17;
-  --color-robot-bg: #faede4;
-  --color-goal: #0d5f80;
-  --color-goal-bg: #e6f3f8;
-  --color-obstacle: #544e47;
-  --color-obstacle-bg: #ded7ce;
+  /* Backward-compatible border colors */
+  --color-border-subtle: var(--borderColor-default);
+  --color-border-strong: #afb8c1;
+  --color-border-focus: var(--borderColor-focus);
 
-  /* Interactive Actions */
-  --color-primary-action: #1c7a4d;
-  --color-primary-action-hover: #16633e;
-  --color-primary-action-active: #104e30;
-  --color-step-action: #0d5f80;
-  --color-step-action-hover: #0a4b66;
-  --color-danger-action: #b93829;
-  --color-danger-bg: #fdf2f0;
-  --color-success-bg: #edf7f1;
+  /* Workshop Roles & Semantic Accents */
+  --color-robot: #bc4c00;
+  --color-robot-bg: #fff8f2;
+  --color-robot-border: #fb8f44;
+  --color-goal: #0969da;
+  --color-goal-bg: #ddf4ff;
+  --color-goal-border: #54aeff;
+  --color-obstacle: #59636e;
+  --color-obstacle-bg: #eaeff5;
+  --color-obstacle-border: #afb8c1;
 
-  /* Typography */
-  --font-family-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-family-code: ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+  /* Actions */
+  --color-primary-action: #1f883d;
+  --color-primary-action-hover: #1a7f37;
+  --color-primary-action-active: #15692c;
+  --color-step-action: #0969da;
+  --color-step-action-hover: #0854ad;
+  --color-danger-action: #cf222e;
+  --color-danger-bg: #ffebe9;
+  --color-success-bg: #dafbe1;
 
-  /* Elevation */
-  --shadow-sm: 0 1px 3px rgba(31, 28, 24, 0.06), 0 1px 2px rgba(31, 28, 24, 0.04);
-  --shadow-md: 0 4px 12px rgba(31, 28, 24, 0.08), 0 2px 4px rgba(31, 28, 24, 0.04);
-  --shadow-lg: 0 12px 28px rgba(31, 28, 24, 0.12), 0 4px 8px rgba(31, 28, 24, 0.06);
+  /* Typography Stacks */
+  --font-family-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  --font-family-body: var(--font-family-ui);
+  --font-family-code: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* Type Scale */
+  --text-title-hero: clamp(2rem, 4vw, 3rem);
+  --text-title-large: 2rem;
+  --text-title-medium: 1.5rem;
+  --text-title-small: 1.25rem;
+  --text-body-large: 1.125rem;
+  --text-body-medium: 1rem;
+  --text-body-small: 0.875rem;
+  --text-caption: 0.75rem;
+
+  /* Spacing Scale (4px base rhythm) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 40px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 80px;
+
+  /* Corner Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
+  /* Elevation / Shadows */
+  --shadow-sm: 0 1px 0 rgba(31, 35, 40, 0.04), 0 1px 2px rgba(31, 35, 40, 0.04);
+  --shadow-md: 0 3px 6px rgba(140, 149, 159, 0.15);
+  --shadow-lg: 0 8px 24px rgba(140, 149, 159, 0.2);
+  --shadow-resting: var(--shadow-sm);
+  --shadow-floating: var(--shadow-lg);
+
   /* Transitions */
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
+  --duration-fast: 80ms;
+  --duration-normal: 200ms;
+  --ease-default: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
+html {
   font-family: var(--font-family-ui);
-  background-color: var(--color-bg-page);
-  color: var(--color-text-primary);
+  background-color: var(--bgColor-muted);
+  color: var(--fgColor-default);
   line-height: 1.5;
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--bgColor-muted);
+  color: var(--fgColor-default);
 }
 
 button {
   font-family: inherit;
   font-size: 1rem;
   cursor: pointer;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  transition: background-color var(--duration-fast) ease, border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+a {
+  color: var(--fgColor-accent);
+  text-decoration: none;
+  transition: color var(--duration-fast) ease;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: var(--fgColor-accent-hover);
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-border-focus);
+  outline: 2px solid var(--borderColor-focus);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

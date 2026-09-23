@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mission } from '../types';
-import { Check, Compass, Code2, Map } from 'lucide-react';
+import { Check, Compass, Code2, Map, ArrowLeft } from 'lucide-react';
 import './Header.css';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
   onSelectMission: (missionId: number) => void;
   onOpenCode: () => void;
   onOpenRoadmap: () => void;
+  onGoToHome?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,17 +20,48 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectMission,
   onOpenCode,
   onOpenRoadmap,
+  onGoToHome,
 }) => {
   return (
     <header className="header-container">
       <div className="header-brand-row">
         <div className="brand-group">
-          <div className="brand-icon-wrap" aria-hidden="true">
-            <Compass size={24} />
-          </div>
-          <div>
-            <h1 className="brand-title">Робот и код</h1>
-            <span className="brand-subtitle">Занятие 1: Доставь робота к маяку</span>
+          {onGoToHome && (
+            <button
+              type="button"
+              className="header-home-btn"
+              onClick={onGoToHome}
+              aria-label="Вернуться на главную страницу курса"
+              title="Вернуться на главную страницу курса"
+            >
+              <ArrowLeft size={16} aria-hidden="true" />
+              <span>О курсе</span>
+            </button>
+          )}
+
+          <div
+            className={`brand-clickable ${onGoToHome ? 'has-action' : ''}`}
+            onClick={onGoToHome}
+            role={onGoToHome ? 'button' : undefined}
+            tabIndex={onGoToHome ? 0 : undefined}
+            onKeyDown={
+              onGoToHome
+                ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onGoToHome();
+                    }
+                  }
+                : undefined
+            }
+          >
+            <div className="brand-icon-wrap" aria-hidden="true">
+              <Compass size={22} />
+            </div>
+            <div>
+              <h1 className="brand-title">Робот и код</h1>
+              <span className="brand-subtitle">Занятие 1: Доставь робота к маяку</span>
+            </div>
           </div>
         </div>
 
@@ -78,7 +110,9 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onSelectMission(mission.id)}
               >
                 <span className="tab-number">{mission.id}</span>
-                <span className="tab-title">{mission.title.replace(`Задание ${mission.id}. `, '')}</span>
+                <span className="tab-title">
+                  {mission.title.replace(`Задание ${mission.id}. `, '')}
+                </span>
                 {isCompleted && (
                   <Check size={14} className="tab-check-icon" aria-hidden="true" />
                 )}
